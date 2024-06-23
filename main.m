@@ -7,8 +7,8 @@ real_Ts = 0.01;
 N = 10;
 simTime = 5;
 Time = 0:Ts:simTime;
-options = optimoptions('quadprog','Algorithm','active-set','Display','final');
-MAXIMUM_LOOP = 10;
+options = optimoptions('quadprog','Algorithm','active-set','Display','off');
+MAXIMUM_LOOP = 20;
 
 %% Initialize
 state_size = 6;         % Check consistent with model.m

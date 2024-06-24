@@ -6,14 +6,15 @@ Ts = 0.1;
 real_Ts = 0.01;
 N = 10;
 simTime = 5;
-Time = 0:Ts:simTime;
+Time = Ts:Ts:simTime;
 options = optimoptions('quadprog','Algorithm','active-set','Display','off');
 MAXIMUM_LOOP = 20;
 
 %% Initialize
 state_size = 6;         % Check consistent with model.m
 input_size = 2;         % Check consistent with model.m
-init_state = [1.9,5.9,-0.538,-0.548,0,0]';   % Check consistent
+init_state = [1.9,5.9,-0.538,-0.548,-0.2,-0.2]';   % Check consistent
+ref_state = [1,0,0,0,0,0]' .* ones(state_size, (length(Time)+N));
 
 best_state = zeros(state_size, length(Time));
 best_input = zeros(input_size, length(Time));
@@ -25,12 +26,12 @@ delta = 0.01;
 start_state = init_state;
 Q = diag([1 1 1e-4 1e-4 1e-4 1e-4]);
 R = diag([1e-2 1e-2]);
-[grad_cost, grad_state] = find_gradient(input, delta, start_state, input_size, state_size, Ts, Q, R, N);
+[grad_cost, grad_state] = find_gradient(input, delta, start_state, ref_state(:, 1:N), input_size, state_size, Ts, Q, R, N);
 state = model(start_state, Ts, input, N);
 
 %% Simulation core
 
-for timeTick = 1:(length(Time)-1)
+for timeTick = 1:length(Time)
     Time(timeTick)
     J = eye(input_size * N);
     H = inv(J);
@@ -61,7 +62,7 @@ for timeTick = 1:(length(Time)-1)
         grad_cost_old = grad_cost;
 
         % find next gradient
-        [grad_cost, grad_state] = find_gradient(input, delta, start_state, input_size, state_size, Ts, Q, R, N);
+        [grad_cost, grad_state] = find_gradient(input, delta, start_state, ref_state(:, timeTick:timeTick+(N-1)), input_size, state_size, Ts, Q, R, N);
 
         % BFGS Hessian Approximation
         s = du;
@@ -96,33 +97,34 @@ for timeTick = 1:(length(Time)-1)
     input = [input(:, 2:end), input(:, end)];
     state = model(start_state, Ts, input, N);
 
-    [grad_cost, grad_state] = find_gradient(input, delta, start_state, input_size, state_size, Ts, Q, R, N);
+    [grad_cost, grad_state] = find_gradient(input, delta, start_state, ref_state(:, timeTick+1:timeTick+N), input_size, state_size, Ts, Q, R, N);
 end
 %% Plot results
-best_state = [init_state best_state(:,1:end-1)];
-best_input = [best_input(:,1:end-1), best_input(:,end-1)];
+best_state_plot = [init_state best_state];
+best_input_plot = [best_input, best_input(:,end-1)];
+Time_plot = [0 Time];
 figure;
 subplot(4, 2, 1);
-plot(Time, best_state(1, :));
+plot(Time_plot, best_state_plot(1, :));
 ylabel('$x$', 'Interpreter','latex');
 subplot(4, 2, 2);
-plot(Time, best_state(2, :));
+plot(Time_plot, best_state_plot(2, :));
 ylabel('$y$', 'Interpreter','latex');
 subplot(4, 2, 3);
-plot(Time, best_state(3, :));
+plot(Time_plot, best_state_plot(3, :));
 ylabel('$\dot{x}$', 'Interpreter','latex');
 subplot(4, 2, 4);
-plot(Time, best_state(4, :));
+plot(Time_plot, best_state_plot(4, :));
 ylabel('$\dot{y}$', 'Interpreter','latex');
 subplot(4, 2, 5);
-plot(Time, best_state(5, :));
+plot(Time_plot, best_state_plot(5, :));
 ylabel('$\theta$', 'Interpreter','latex');
 subplot(4, 2, 6);
-plot(Time, best_state(6, :));
+plot(Time_plot, best_state_plot(6, :));
 ylabel('$\psi$', 'Interpreter','latex');
 subplot(4, 2, 7);
-plot(Time, best_input(1, :));
+plot(Time_plot, best_input_plot(1, :));
 ylabel('$\dot{\theta}$', 'Interpreter','latex');
 subplot(4, 2, 8);
-plot(Time, best_input(2, :));
+plot(Time_plot, best_input_plot(2, :));
 ylabel('$\dot{\psi}$', 'Interpreter','latex');

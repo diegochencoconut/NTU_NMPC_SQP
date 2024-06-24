@@ -5,7 +5,7 @@ clear; clc;
 Ts = 0.1;
 real_Ts = 0.01;
 N = 10;
-simTime = 5;
+simTime = 10;
 Time = Ts:Ts:simTime;
 options = optimoptions('quadprog','Algorithm','active-set','Display','off');
 MAXIMUM_LOOP = 20;
@@ -14,7 +14,7 @@ MAXIMUM_LOOP = 20;
 state_size = 6;         % Check consistent with model.m
 input_size = 2;         % Check consistent with model.m
 init_state = [1.9,5.9,-0.538,-0.548,-0.2,-0.2]';   % Check consistent
-ref_state = [1,0,0,0,0,0]' .* ones(state_size, (length(Time)+N));
+ref_state = [-0.91,4.12,0,0,0,0]' .* ones(state_size, (length(Time)+N));
 
 best_state = zeros(state_size, length(Time));
 best_input = zeros(input_size, length(Time));
@@ -44,7 +44,7 @@ for timeTick = 1:length(Time)
         min_input = -4*ones(input_size*N, 1);
         
         max_state = diag([3.5, 7.5,2,2,0.2,0.2]);
-        min_state = diag([-10, -4.5,-2,-2,-0.2,-0.2]);
+        min_state = diag([-1, -4.5,-2,-2,-0.2,-0.2]);
         max_state = reshape(max_state * ones(state_size, N), [], 1);
         min_state = reshape(min_state * ones(state_size, N), [], 1);
 
@@ -106,25 +106,27 @@ Time_plot = [0 Time];
 figure;
 subplot(4, 2, 1);
 plot(Time_plot, best_state_plot(1, :));
-ylabel('$x$', 'Interpreter','latex');
+ylabel('$x$[m]', 'Interpreter','latex');
 subplot(4, 2, 2);
 plot(Time_plot, best_state_plot(2, :));
-ylabel('$y$', 'Interpreter','latex');
+ylabel('$y$[m]', 'Interpreter','latex');
 subplot(4, 2, 3);
 plot(Time_plot, best_state_plot(3, :));
-ylabel('$\dot{x}$', 'Interpreter','latex');
+ylabel('$\dot{x}$[m]', 'Interpreter','latex');
 subplot(4, 2, 4);
 plot(Time_plot, best_state_plot(4, :));
-ylabel('$\dot{y}$', 'Interpreter','latex');
+ylabel('$\dot{y}$[m]', 'Interpreter','latex');
 subplot(4, 2, 5);
 plot(Time_plot, best_state_plot(5, :));
-ylabel('$\theta$', 'Interpreter','latex');
+ylabel('$\theta$[rad]', 'Interpreter','latex');
 subplot(4, 2, 6);
 plot(Time_plot, best_state_plot(6, :));
-ylabel('$\psi$', 'Interpreter','latex');
+ylabel('$\psi$[rad]', 'Interpreter','latex');
 subplot(4, 2, 7);
 plot(Time_plot, best_input_plot(1, :));
-ylabel('$\dot{\theta}$', 'Interpreter','latex');
+ylabel('$\dot{\theta}$[rad/s]', 'Interpreter','latex');
+xlabel('Time[s]', 'Interpreter','latex');
 subplot(4, 2, 8);
 plot(Time_plot, best_input_plot(2, :));
-ylabel('$\dot{\psi}$', 'Interpreter','latex');
+ylabel('$\dot{\psi}$[rad/s]', 'Interpreter','latex');
+xlabel('Time[s]', 'Interpreter','latex');
